@@ -2,9 +2,10 @@ package io.github.gldiazcardenas.dropwizard.microservice.app;
 
 import io.dropwizard.testing.junit5.DropwizardAppExtension;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
+import io.github.gldiazcardenas.dropwizard.microservice.client.HelloWorldClient;
 import io.github.gldiazcardenas.dropwizard.microservice.model.HelloWorld;
 import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.core.Response;
+import org.glassfish.jersey.client.proxy.WebResourceFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -20,13 +21,9 @@ public class HelloWorldIntegrationTest {
     void testHelloWorld() {
         Client client = DROPWIZARD.client();
 
-        Response response = client.target(String.format("http://localhost:%d/hello-world", DROPWIZARD.getLocalPort()))
-            .request()
-            .get();
+        HelloWorldClient proxy = WebResourceFactory.newResource(HelloWorldClient.class, client.target(String.format("http://localhost:%d", DROPWIZARD.getLocalPort())));
 
-        assertThat(response.getStatus()).isEqualTo(200);
-
-        HelloWorld helloWorld = response.readEntity(HelloWorld.class);
+        HelloWorld helloWorld = proxy.greeting("Tester");
 
         assertThat(helloWorld).isNotNull();
         assertThat(helloWorld.getId()).isGreaterThan(0);
